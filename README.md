@@ -1,4 +1,4 @@
-# Proof Beauty
+﻿# Proof Beauty
 
 Virtual makeup try-on usually answers "do I like how this looks?" Proof Beauty answers **"does this look actually do what I need it to?"**
 
@@ -86,7 +86,45 @@ J = Σ w_c · reduction_c  −  λ · tone_drift  −  μ · intensity
 - Verification may be less reliable on deeper skin tones; the results page says so when the baseline tone is deep. Test across a range of tones before claiming otherwise.
 - Tone drift uses a fixed central-face sample region, an approximation.
 - Results are cosmetic visibility estimates, never medical or dermatological claims.
+- "Verified at render shade" on a product means the layer was measured with the shade the render used (matched to the photo's lighting; under-eye concealer is deliberately lighter than skin so YouCam registers it). The shade to *buy* is the lighting-corrected equivalent and is shown separately; that exact product was not measured.
 
+## Tests
+
+```bash
+npm test
+```
+
+Unit tests cover the pure logic: `src/lib/scoring.ts` (noise shrink, weights, J, proven/pickBest, refinement and dose-headroom rules), `src/lib/integrity.ts` (caught / tie / held / clean) and the rate limiter. No network or credits involved. If Vitest reports "Cannot find native binding", run `npm install` again: the matching `@rolldown/binding-*` package for your OS is listed under `optionalDependencies`.
+
+## Deploying on Vercel
+
+Local dev keeps everything in `./.data`. On Vercel the disk is ephemeral per request, so the same code switches to managed storage when it finds the env vars below (and refuses to run on Vercel without them, instead of half-working):
+
+| What | Local | Vercel |
+| --- | --- | --- |
+| Photos, render images, results | `.data/sessions/` | **private Vercel Blob** store (`src/server/store.ts`), served only through `/api/files/...` |
+| Credit ledger, analysis cache, rate limit | `.data/ledger.json`, `.data/cache/`, in memory | **Redis** (Upstash) via REST (`src/server/redis.ts`), atomic counters shared by all instances |
+| Photo expiry | purged on each run | purged on each run **and** daily by a cron (`vercel.json` → `/api/cron/purge`) |
+
+Steps:
+
+1. Push the repo and import it in Vercel (framework: Next.js, nothing to configure; `postinstall` copies the MediaPipe WASM).
+2. **Storage → Create → Blob → access: Private**, connect it to the project.
+3. **Marketplace → Upstash Redis**, connect it (adds `KV_REST_API_URL` / `KV_REST_API_TOKEN`).
+4. Environment variables: `YOUCAM_API_KEY`, `CREDIT_BUDGET` (the credits you really have left; a fresh Redis counts from 0), `OLLAMA_MODEL=` (empty), `CRON_SECRET` (any long random string), `TRUST_PROXY=1`.
+5. Deploy. Check `/api/status` shows `mode: "live"`.
+
+Things to know:
+
+- **Rate limit** – `src/server/ratelimit.ts` limits `/api/run` per IP (default 3 runs/hour in production; `RATE_LIMIT_RUNS`, `RATE_LIMIT_WINDOW_MIN`; Stage 2 gets 2x). `CREDIT_BUDGET` remains the hard stop for the whole deployment, so a determined attacker with many IPs can still spend it; set it to what you're willing to lose.
+- **Upload size** – Vercel rejects request bodies over 4.5 MB, so the browser re-encodes big photos before upload (`fitForUpload`) and the server caps at 4.4 MB there.
+- **Run time** – a run streams for about a minute and the route allows up to 300 s, which needs Fluid Compute (the default on new projects). On a plan limited to 60 s a refinement round may be cut off.
+- **Retention** – photos are deleted on "Delete my photos", on each new run once older than `SESSION_TTL_MINUTES`, and by the daily cron, so an unattended deployment can hold a photo for up to ~25 hours at worst. Shorten that if it matters to you.
+- **Not tested against live Vercel from this repo** – the Blob/Redis code paths need real stores; the local-disk path is what the automated checks exercise.
+
+Other hosts: any VM or container with a persistent volume runs it as-is with no extra env vars.
+
+No public deployment is linked here yet.
 ## Privacy
 
 Explicit consent before any upload, short-TTL storage (`SESSION_TTL_MINUTES`, default 60), one-tap "Delete my photos", and the API key never reaches the browser. `.data/` holds sessions, cache and the ledger and is git-ignored. In the browser, photos are held in memory only while you use the page (so a server restart can't blank them) and are dropped on "Start over" / "Delete my photos"; a photo that's genuinely gone shows a "Photo not available" panel with a retry instead of a broken icon.
@@ -101,3 +139,4 @@ src/lib/                 types, concerns, scoring, planner, patterns, color, qua
 src/server/              orchestrator, youcam adapter, demo engine, store, ledger, explain
 scripts/probe.mjs        day-one feasibility probe
 ```
+

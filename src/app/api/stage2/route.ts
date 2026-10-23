@@ -1,11 +1,14 @@
 import { runStage2 } from "@/server/orchestrator";
 import { isValidId } from "@/server/store";
+import { limitOrNull } from "@/server/ratelimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 export async function POST(req: Request) {
+  const limited = await limitOrNull(req, "stage2", 2);
+  if (limited) return limited;
   const form = await req.formData();
   const file = form.get("image");
   const sessionId = String(form.get("sessionId") ?? "");

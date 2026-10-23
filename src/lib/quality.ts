@@ -108,6 +108,36 @@ export async function cropToFace(blob: Blob, box: { x: number; y: number; w: num
   return await new Promise<Blob>((res) => c.toBlob((b) => res(b ?? blob), "image/jpeg", 0.93));
 }
 
+/**
+ * Hosts like Vercel reject request bodies over ~4.5 MB. Phone photos are often 3-8 MB, so re-encode anything big
+ * (longest side <= 2048 px, JPEG quality stepping down) until it fits. Small files are passed through untouched.
+ */
+export async function fitForUpload(blob: Blob, maxBytes = 3.5 * 1024 * 1024): Promise<Blob> {
+  if (blob.size <= maxBytes) return blob;
+  try {
+    const bmp = await createImageBitmap(blob);
+    let scale = Math.min(1, 2048 / Math.max(bmp.width, bmp.height));
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const c = document.createElement("canvas");
+      c.width = Math.round(bmp.width * scale);
+      c.height = Math.round(bmp.height * scale);
+      const ctx = c.getContext("2d")!;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(bmp, 0, 0, c.width, c.height);
+      const out = await new Promise<Blob | null>((res) => c.toBlob(res, "image/jpeg", 0.9 - attempt * 0.05));
+      if (out && out.size <= maxBytes) {
+        bmp.close();
+        return out;
+      }
+      scale *= 0.8;
+    }
+    bmp.close();
+  } catch {
+    /* fall through: send the original and let the server explain if it is too large */
+  }
+  return blob;
+}
+
 export function laplacianVariance(gray: Float32Array, w: number, h: number): number {
   let sum = 0, sumSq = 0, n = 0;
   for (let y = 1; y < h - 1; y++) {

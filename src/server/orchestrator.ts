@@ -125,7 +125,7 @@ export async function runLoop(opts: {
         // a tone task is billed when created even if it then fails (e.g. tilted face), so count it whenever attempted
         await bump(cfg.cost.skin + (useTone ? cfg.cost.tone : 0));
         base = { scores: an.scores, overlays: an.overlays, overall: an.overall, tone };
-        if (i === 0) await cacheSet(cacheKey, base);
+        if (i === 0) await cacheSet(cacheKey, base, sessionId);
         break;
       } catch (e: any) {
         const tooSmall = /face_too_small/i.test(String(e?.code ?? e?.message));

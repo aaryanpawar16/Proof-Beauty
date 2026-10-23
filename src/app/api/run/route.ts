@@ -1,21 +1,25 @@
 import { CONCERNS } from "@/lib/concerns";
 import type { ConcernId, RunEvent } from "@/lib/types";
 import { runLoop } from "@/server/orchestrator";
+import { limitOrNull } from "@/server/ratelimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-const MAX_BYTES = 12 * 1024 * 1024;
+// Vercel rejects request bodies over 4.5 MB before our code runs; the browser shrinks photos to fit (fitForUpload).
+const MAX_BYTES = process.env.VERCEL ? 4.4 * 1024 * 1024 : 12 * 1024 * 1024;
 
 /** Streams the loop as NDJSON so the UI can show every step, candidate and unit spend live. */
 export async function POST(req: Request) {
+  const limited = await limitOrNull(req, "run");
+  if (limited) return limited;
   const form = await req.formData();
   const file = form.get("image");
   if (!(file instanceof File) || file.size === 0) {
     return Response.json({ error: "No image provided." }, { status: 400 });
   }
-  if (file.size > MAX_BYTES) return Response.json({ error: "Image is too large (max 12 MB)." }, { status: 413 });
+  if (file.size > MAX_BYTES) return Response.json({ error: "Image is too large (max ${Math.round(MAX_BYTES / 1048576)} MB)." }, { status: 413 });
   if (form.get("consent") !== "yes") {
     return Response.json({ error: "Consent is required before photo analysis." }, { status: 400 });
   }

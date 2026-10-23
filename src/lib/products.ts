@@ -42,10 +42,16 @@ export function describeShade(tone: ToneReading, driftLab: [number, number, numb
 export interface ShopItem {
   role: Role;
   name: string;
+  /** the shade you'd BUY (lighting-corrected tone) */
   shade: string;
+  /** the shade the render actually used (matched to this photo's pixels). "Verified" refers to THIS one. */
+  renderShade: string;
   why: string;
   href: string;
-  /** true = a concern this product targets measurably improved; false = none did; null = general-purpose layer */
+  /**
+   * true  = a concern this product targets measurably improved, measured with `renderShade` (not `shade`)
+   * false = none did; null = general-purpose layer
+   */
   verified: boolean | null;
 }
 
@@ -66,6 +72,10 @@ export function buildShoppingList(
   const { label } = describeShade(tone, driftLab);
   // Products use the lighting-corrected tone (what you'd actually buy); the render used the observed colour.
   const buyHex = tone.source === "api" ? tone.skinHex : labToHex(liftLocal(driftLab));
+  // Roles in the same category (e.g. several foundation roles) are merged into one request, which uses the colour of
+  // the strongest layer (see buildVtoEffects in src/server/youcam.ts). Report the colour that was really sent.
+  const sentColor = (category: string, fallback: string) =>
+    [...c.effects].filter((x) => x.category === category).sort((a, b) => b.intensity - a.intensity)[0]?.color ?? fallback;
   return c.effects.map((e) => {
     const targeted = c.targets.filter((t: ConcernId) => CONCERNS[t].roles.includes(e.role));
     const forConcerns = targeted.map((t) => CONCERNS[t].label.toLowerCase());
@@ -78,6 +88,7 @@ export function buildShoppingList(
       role: e.role,
       name: p.name,
       shade: buyShade(e.role, buyHex),
+      renderShade: sentColor(e.category, e.color),
       verified,
       why: forConcerns.length ? `For ${forConcerns.join(" + ")}` : "Blends everything together",
       href: `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(p.search(label.split(" · ")[0]))}`,

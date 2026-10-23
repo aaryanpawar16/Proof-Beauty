@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useReducer, useRef } from "react";
+import { fitForUpload } from "@/lib/quality";
 import type { Analysis, Candidate, ConcernId, EvaluatedCandidate, RunEvent, RunResult, StepId } from "@/lib/types";
 
 export interface RunState {
@@ -66,7 +67,7 @@ export function useRun() {
     dispatch({ type: "begin" });
 
     const form = new FormData();
-    form.set("image", image, "selfie.jpg");
+    form.set("image", await fitForUpload(image), "selfie.jpg");
     form.set("ranked", JSON.stringify(ranked));
     form.set("consent", "yes");
 

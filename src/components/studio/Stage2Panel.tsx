@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, Camera, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { CONCERNS } from "@/lib/concerns";
+import { fitForUpload } from "@/lib/quality";
 import type { RunResult, Stage2Result } from "@/lib/types";
 import { SessionImage } from "../SessionImage";
 import { EASE } from "../ui";
@@ -19,7 +20,7 @@ export function Stage2Panel({ result }: { result: RunResult }) {
     setBusy(true);
     setError(null);
     const form = new FormData();
-    form.set("image", blob, "applied.jpg");
+    form.set("image", await fitForUpload(blob), "applied.jpg");
     form.set("sessionId", result.sessionId);
     try {
       const res = await fetch("/api/stage2", { method: "POST", body: form });

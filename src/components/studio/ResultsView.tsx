@@ -237,7 +237,7 @@ export function ResultsView({ result, onRestart, onDelete, deleting }: { result:
       <Reveal>
         <div className="card p-6 sm:p-8">
           <div className="mb-1 flex items-center gap-2.5"><ShoppingBag className="h-5 w-5 text-peach" /><h3 className="text-lg font-semibold text-white">Shop the look</h3></div>
-          <p className="mb-6 text-sm text-fog">Shade targets derived from your measured tone ({shade.label}). Each link is a shopping search for that exact spec. Match in daylight before buying.</p>
+          <p className="mb-6 text-sm text-fog">Shade targets derived from your measured tone ({shade.label}). Each link is a shopping search for that spec. <span className="text-mist">&ldquo;Verified at render shade&rdquo;</span> means we measured the layer using the <em className="not-italic text-mist">tested as</em> shade, which matches this photo&apos;s lighting (and, for concealer, is deliberately lighter than skin so the effect registers). The <em className="not-italic text-mist">buy</em> shade is the lighting-corrected equivalent, so check it in daylight; we haven&apos;t measured that exact product.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {shop.map((p, i) => (
               <motion.a key={p.role} href={p.href} target="_blank" rel="noreferrer" initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }} whileHover={{ y: -3 }} className="group flex items-center gap-4 rounded-2xl border border-line bg-white/[0.025] p-4 transition-colors hover:border-line-strong">
@@ -245,8 +245,12 @@ export function ResultsView({ result, onRestart, onDelete, deleting }: { result:
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium text-white">{p.name}</span>
                   <span className="block text-xs text-fog">
-                    {p.why} · target <span className="font-mono">{p.shade}</span>
-                    {p.verified === true && <span className="ml-2 rounded-full border border-mint/30 bg-mint/10 px-2 py-0.5 font-mono text-[0.58rem] uppercase tracking-wider text-mint">measured help</span>}
+                    {p.why}
+                    <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="inline-flex items-center gap-1.5">buy <i className="inline-block h-2.5 w-2.5 rounded-full ring-1 ring-white/30" style={{ background: p.shade }} /><span className="font-mono">{p.shade}</span></span>
+                      <span className="inline-flex items-center gap-1.5">tested as <i className="inline-block h-2.5 w-2.5 rounded-full ring-1 ring-white/30" style={{ background: p.renderShade }} /><span className="font-mono">{p.renderShade}</span></span>
+                    </span>
+                    {p.verified === true && <span title="This layer was measured using the 'tested as' shade, not the 'buy' shade" className="mt-1.5 inline-block rounded-full border border-mint/30 bg-mint/10 px-2 py-0.5 font-mono text-[0.58rem] uppercase tracking-wider text-mint">verified at render shade</span>}
                     {p.verified === false && <span className="ml-2 rounded-full border border-amber/30 bg-amber/10 px-2 py-0.5 font-mono text-[0.58rem] uppercase tracking-wider text-amber">not verified</span>}
                   </span>
                 </span>
