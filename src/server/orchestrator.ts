@@ -28,7 +28,7 @@ import { cfg, isLive } from "./config";
 import type { Engine, ImageRef } from "./engine";
 import { explainNow, explainReword } from "./explain";
 import { centerCrop, displayJpeg, normalizeUpload, sampleFaceLab, sha } from "./imaging";
-import { recordRun, unitsLeft } from "./ledger";
+import { ledgerSummary, recordRun, unitsLeft } from "./ledger";
 import { demoEngine } from "./mock";
 import { cacheGet, cacheSet, ensureSession, fileUrl, purgeExpired, readFile, saveFile } from "./store";
 import { liveEngine } from "./youcam";
@@ -36,17 +36,33 @@ import { liveEngine } from "./youcam";
 const K = 3;
 const MAX_ROUNDS = 2; // hard cap: protects the unit budget and keeps latency sane
 
-export const getEngine = (): Engine => (isLive() ? liveEngine : demoEngine);
+/** `demo` forces the simulated engine even when a YouCam key is configured (credit pool empty, or a demo session). */
+export const getEngine = (demo = false): Engine => (isLive() && !demo ? liveEngine : demoEngine);
 
-export const getParams = (): ScoreParams => ({
+export const getParams = (demo = false): ScoreParams => ({
   ...DEFAULT_PARAMS,
   noiseBand: cfg.noiseBand,
   // Measured on near-identical photos (re-encode / 4px shift / +3% brightness), raw_score spread: dark circles 0.7,
   // eye bags 0.8, dark spots 0.5, shine 2.4. So shine needs a wider band than the rest. Only valid for raw_score.
-  noiseByConcern: isLive() && cfg.scoreField === "raw_score" && process.env.NOISE_BAND === undefined ? { oiliness: 3.5, dark_circle: 1.5, eye_bag: 1.5, age_spot: 1.5 } : undefined,
+  noiseByConcern: isLive() && !demo && cfg.scoreField === "raw_score" && process.env.NOISE_BAND === undefined ? { oiliness: 3.5, dark_circle: 1.5, eye_bag: 1.5, age_spot: 1.5 } : undefined,
   coverageTarget: cfg.coverageTarget,
-  higherIsBetter: isLive() ? cfg.higherIsBetter : true,
+  higherIsBetter: isLive() && !demo ? cfg.higherIsBetter : true,
 });
+
+/** How long a "YouCam said no credits" report keeps live runs off before we try YouCam again (e.g. after a top-up). */
+const EXHAUSTED_RETRY_MS = 30 * 60_000;
+
+/**
+ * True when the app is set up for live YouCam but the credit pool can't pay for another run: either our own count
+ * says so, or YouCam itself recently refused a task for lack of credits. The exhausted flag only clears when a live
+ * task succeeds, which can't happen while we're in demo, so it expires and the next run probes YouCam again.
+ */
+export async function creditsRunDry(): Promise<boolean> {
+  if (!isLive()) return false;
+  const l = await ledgerSummary();
+  const recentlyRefused = l.exhaustedAt ? Date.now() - new Date(l.exhaustedAt).getTime() < EXHAUSTED_RETRY_MS : false;
+  return recentlyRefused || l.left < estimateUnits(false);
+}
 
 /** Units a run can cost, so we can refuse before spending anything. */
 export function estimateUnits(refine = false) {
@@ -64,8 +80,10 @@ export async function runLoop(opts: {
   emit: (e: RunEvent) => void;
 }): Promise<void> {
   const { emit } = opts;
-  const engine = getEngine();
-  const params = getParams();
+  // When the credit pool is empty, run the simulated engine (clearly labelled) instead of showing a dead product.
+  const fellBack = await creditsRunDry();
+  const engine = getEngine(fellBack);
+  const params = getParams(fellBack);
   const live = engine.mode === "live";
   let used = 0;
 
@@ -79,7 +97,7 @@ export async function runLoop(opts: {
 
   const left = live ? await unitsLeft() : cfg.budget;
   const estimate = estimateUnits(true);
-  emit({ type: "start", mode: engine.mode, budgetLeft: left, estimate, higherIsBetter: params.higherIsBetter });
+  emit({ type: "start", mode: engine.mode, budgetLeft: left, estimate, higherIsBetter: params.higherIsBetter, fellBack });
   if (live && left < estimateUnits(false)) {
     emit({ type: "error", code: "budget", message: `Not enough credits left by the app's count (${left}) for a full run (~${estimateUnits(false)}). If you've added credits on YouCam, raise CREDIT_BUDGET in .env by that amount.` });
     return;
@@ -280,8 +298,9 @@ export async function runStage2(sessionId: string, rawImage: Buffer): Promise<St
   const raw = await readFile(sessionId, "result.json");
   if (!raw) throw new Error("Session expired or not found. Photos are deleted after an hour.");
   const result: RunResult = JSON.parse(raw.toString());
-  const engine = getEngine();
-  const params = getParams();
+  // measure with the same engine that produced the baseline: a simulated session must never spend real credits
+  const engine = getEngine(result.mode === "demo");
+  const params = getParams(result.mode === "demo");
 
   const norm = await normalizeUpload(rawImage);
   const measuredUrl = await saveFile(sessionId, "stage2.jpg", norm.buf);

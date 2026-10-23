@@ -27,7 +27,9 @@ export function PriorityPicker({ ranked, setRanked, onRun, status, previewUrl }:
     setRanked(ranked.includes(id) ? ranked.filter((x) => x !== id) : ranked.length >= 4 ? ranked : [...ranked, id]);
   };
 
-  const broke = status?.mode === "live" && status.left < status.perRun;
+  // out of credits: the run still works, but on the simulated engine, so say so on the button
+  const dry = status?.mode === "live" && (Boolean(status.exhausted) || status.left < status.perRun);
+  // (the server decides for real; `exhausted` expires there after 30 min so a top-up is picked up)
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
@@ -115,16 +117,16 @@ export function PriorityPicker({ ranked, setRanked, onRun, status, previewUrl }:
         </div>
 
         {status?.exhausted && (
-          <div className="rounded-2xl border border-bad/30 bg-bad/[0.07] p-4 text-sm leading-relaxed text-bad">
-            <div className="mb-1 font-medium">YouCam says this account has no credits left.</div>
-            <span className="text-bad/80">A run will fail until you add credits in the YouCam console, or restart the server with <code className="font-mono">FORCE_DEMO=1</code> to use the free demo mode. (A rejected request costs nothing, so trying again is safe.)</span>
+          <div className="rounded-2xl border border-amber/30 bg-amber/[0.07] p-4 text-sm leading-relaxed text-amber">
+            <div className="mb-1 font-medium">The real YouCam credits for this deployment are used up.</div>
+            <span className="text-amber/80">Runs now use the simulated engine and are labelled as demo data. After adding credits, runs go back to live YouCam automatically within about 30 minutes.</span>
           </div>
         )}
-        <button className="btn-primary group justify-center" onClick={onRun} disabled={broke}>
-          Run the verification loop
+        <button className="btn-primary group justify-center" onClick={onRun}>
+          {dry ? "Run in demo mode (simulated)" : "Run the verification loop"}
           <ArrowRight className="h-4.5 w-4.5 transition-transform group-hover:translate-x-1" />
         </button>
-        {broke && <p className="-mt-2 text-center text-xs text-bad">Not enough credits left by the app&apos;s count. If you&apos;ve added credits, raise CREDIT_BUDGET in .env.</p>}
+        {dry && <p className="-mt-2 text-center text-xs text-amber">The shared YouCam credit pool is used up, so this will use simulated data and say so. The recorded video shows the real run.</p>}
       </div>
     </div>
   );

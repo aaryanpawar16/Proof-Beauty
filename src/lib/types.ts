@@ -147,7 +147,7 @@ export interface RunResult {
 }
 
 export type RunEvent =
-  | { type: "start"; mode: "live" | "demo"; budgetLeft: number; estimate: number; higherIsBetter: boolean }
+  | { type: "start"; mode: "live" | "demo"; budgetLeft: number; estimate: number; higherIsBetter: boolean; fellBack?: boolean }
   | { type: "step"; step: StepId; status: "active" | "done"; detail?: string }
   | { type: "baseline"; analysis: Analysis; originalUrl: string }
   | { type: "plan"; candidates: Candidate[]; round: 1 | 2 }

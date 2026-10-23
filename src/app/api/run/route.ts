@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   if (!(file instanceof File) || file.size === 0) {
     return Response.json({ error: "No image provided." }, { status: 400 });
   }
-  if (file.size > MAX_BYTES) return Response.json({ error: "Image is too large (max ${Math.round(MAX_BYTES / 1048576)} MB)." }, { status: 413 });
+  if (file.size > MAX_BYTES) return Response.json({ error: `Image is too large (max ${Math.round(MAX_BYTES / 1048576)} MB).` }, { status: 413 });
   if (form.get("consent") !== "yes") {
     return Response.json({ error: "Consent is required before photo analysis." }, { status: 400 });
   }

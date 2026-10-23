@@ -7,6 +7,8 @@ import type { Analysis, Candidate, ConcernId, EvaluatedCandidate, RunEvent, RunR
 export interface RunState {
   phase: "idle" | "running" | "done" | "error";
   mode?: "live" | "demo";
+  /** the app is configured for live YouCam but ran the simulated engine because the credit pool is empty */
+  fellBack?: boolean;
   higherIsBetter: boolean;
   steps: Partial<Record<StepId, { status: "active" | "done"; detail?: string }>>;
   log: { at: number; step: StepId; text: string }[];
@@ -32,7 +34,7 @@ function reducer(s: RunState, a: Action): RunState {
   const e = a.e;
   switch (e.type) {
     case "start":
-      return { ...s, mode: e.mode, unitsLeft: e.budgetLeft, estimate: e.estimate, higherIsBetter: e.higherIsBetter };
+      return { ...s, mode: e.mode, fellBack: e.fellBack, unitsLeft: e.budgetLeft, estimate: e.estimate, higherIsBetter: e.higherIsBetter };
     case "step":
       return {
         ...s,

@@ -1,6 +1,6 @@
 ﻿# Proof Beauty
 
-**Live demo: https://proof-beauty.vercel.app**
+**Live demo: https://proof-beauty.vercel.app** (real YouCam credits are limited; when they run out the demo switches to clearly labelled simulated data, see [Deploying](#deploying-on-vercel))
 
 Virtual makeup try-on usually answers "do I like how this looks?" Proof Beauty answers **"does this look actually do what I need it to?"**
 
@@ -126,7 +126,7 @@ Things to know:
 
 Other hosts: any VM or container with a persistent volume runs it as-is with no extra env vars.
 
-Live deployment: https://proof-beauty.vercel.app (rate-limited per IP; the credit pool is small, so a run may be refused when it is used up).
+Live deployment: https://proof-beauty.vercel.app. **The YouCam credit pool is small (a run costs about 54 credits, so only a handful of real runs fit).** When it is used up the app does not break: runs fall back to the built-in simulated engine and are labelled "Demo data · simulated" on the run and results screens, and live YouCam is retried automatically about 30 minutes after a top-up. The recorded video is the main evidence of a real YouCam run. Runs are also rate-limited per IP.
 
 ## Privacy
 

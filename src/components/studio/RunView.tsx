@@ -77,7 +77,9 @@ export function RunView({ state, previewUrl, onRetry }: { state: RunState; previ
         </ol>
         {state.mode === "demo" && (
           <p className="mt-5 rounded-xl border border-amber/25 bg-amber/[0.07] p-3 text-xs leading-relaxed text-amber">
-            Demo mode: analysis and renders are simulated so the loop can run for free. Add a YouCam key for real measurements.
+            {state.fellBack
+              ? "The YouCam credit pool for this demo is used up, so this run is simulated: the numbers below are not real measurements. The recorded video shows the real YouCam run."
+              : "Demo mode: analysis and renders are simulated so the loop can run for free. Add a YouCam key for real measurements."}
           </p>
         )}
       </div>

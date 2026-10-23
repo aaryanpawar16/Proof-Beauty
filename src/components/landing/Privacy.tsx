@@ -9,7 +9,7 @@ const ITEMS = [
   { Icon: Trash2, t: "One-tap delete", d: "Delete my photos wipes your session and cached analyses immediately. No account needed." },
   { Icon: Lock, t: "Keys stay server-side", d: "A thin proxy holds the YouCam key, so your browser never sees it." },
   { Icon: FileHeart, t: "Cosmetic, not medical", d: "Results are cosmetic visibility estimates. Never a diagnosis, never dermatological advice." },
-  { Icon: Palette, t: "Tested across skin tones", d: "If verification is less reliable on deeper tones, we say so in your results instead of hiding it." },
+  { Icon: Palette, t: "Skin-tone caveats", d: "If verification may be less reliable on deeper tones, we say so in your results instead of hiding it." },
 ];
 
 export function Privacy() {

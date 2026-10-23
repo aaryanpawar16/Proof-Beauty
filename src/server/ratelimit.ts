@@ -34,6 +34,11 @@ export function rateLimit(key: string, max: number, windowMs: number, now = Date
 }
 
 export function clientIp(req: Request): string {
+  // On Vercel the platform always sets these headers, so never depend on the TRUST_PROXY env var being remembered
+  if (process.env.VERCEL) {
+    const v = req.headers.get("x-vercel-forwarded-for") ?? req.headers.get("x-real-ip");
+    if (v) return v.split(",")[0].trim();
+  }
   if (process.env.TRUST_PROXY === "1") {
     const fwd = req.headers.get("x-forwarded-for");
     // the proxy appends the real client last; anything before it is client-supplied

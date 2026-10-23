@@ -161,7 +161,7 @@ export function VisualExplain() {
   return (
     <div className="space-y-3">
       {[
-        "Balanced cut visible dark circles by 45% (62 → 31), confidence: clear.",
+        "Balanced cut visible dark circles by 45% after noise shrinkage (raw 62 → 31), confidence: clear.",
         "Makeup won't fix wrinkles. We left them out of scoring.",
         "Tone drift ΔE 1.8: it should read as your skin, not a mask.",
       ].map((t, i) => (
