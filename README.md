@@ -1,5 +1,7 @@
 ﻿# Proof Beauty
 
+**Live demo: https://proof-beauty.vercel.app**
+
 Virtual makeup try-on usually answers "do I like how this looks?" Proof Beauty answers **"does this look actually do what I need it to?"**
 
 ```
@@ -124,7 +126,8 @@ Things to know:
 
 Other hosts: any VM or container with a persistent volume runs it as-is with no extra env vars.
 
-No public deployment is linked here yet.
+Live deployment: https://proof-beauty.vercel.app (rate-limited per IP; the credit pool is small, so a run may be refused when it is used up).
+
 ## Privacy
 
 Explicit consent before any upload, short-TTL storage (`SESSION_TTL_MINUTES`, default 60), one-tap "Delete my photos", and the API key never reaches the browser. `.data/` holds sessions, cache and the ledger and is git-ignored. In the browser, photos are held in memory only while you use the page (so a server restart can't blank them) and are dropped on "Start over" / "Delete my photos"; a photo that's genuinely gone shows a "Photo not available" panel with a retry instead of a broken icon.
