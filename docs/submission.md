@@ -8,7 +8,7 @@ Proof Beauty chains three YouCam APIs into a closed loop. **Skin analysis** meas
 
 ## Consumer and retail value
 
-Try-on tells you whether you like a look; it does not tell you whether the look does the job. Proof Beauty answers "will this actually cover my dark circles or redness?", and ends with a shopping list: each product type, the shade to buy, and a badge that says whether the layer was measured to help. For a retailer this means shade and product guidance tied to a measured result instead of a generic quiz, fewer wrong-shade purchases, and a try-on that can back its claims. We are explicit about limits: results are cosmetic visibility estimates, never medical advice, the badge says the layer was verified at the shade used in the render (the shade to buy is shown separately), and deeper skin tones get a reliability warning.
+Try-on tells you whether you like a look; it does not tell you whether the look does the job. Proof Beauty answers "will this actually cover my dark circles or redness?", and ends with a shopping list: each product type, the shade to buy, and a badge that says whether the layer was measured to help. For a retailer this means shade and product guidance tied to a measured result instead of a generic quiz, a product that aims to reduce wrong-shade purchases (we have not measured this), and a try-on that can back its claims. We are explicit about limits: results are cosmetic visibility estimates, never medical advice, the badge says the layer was verified at the shade used in the render (the shade to buy is shown separately), and deeper skin tones get a reliability warning.
 
 ## Product experience
 
