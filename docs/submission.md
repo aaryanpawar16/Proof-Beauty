@@ -1,6 +1,6 @@
 # Proof Beauty: submission text
 
-Live demo: https://proof-beauty.vercel.app · Code: https://github.com/aaryanpawar16/Proof-Beauty · MIT licensed
+Live demo: https://proof-beauty.vercel.app · Demo video: https://youtu.be/8dRWujsZoKg · Code: https://github.com/aaryanpawar16/Proof-Beauty · MIT licensed
 
 ## How we use the YouCam APIs
 

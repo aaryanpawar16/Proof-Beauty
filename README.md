@@ -1,6 +1,6 @@
 ﻿# Proof Beauty
 
-**Live demo: https://proof-beauty.vercel.app** (real YouCam credits are limited; when they run out the demo switches to clearly labelled simulated data, see [Deploying](#deploying-on-vercel))
+**Live demo: https://proof-beauty.vercel.app** · **Demo video: https://youtu.be/8dRWujsZoKg** (real YouCam credits are limited; when they run out the demo switches to clearly labelled simulated data, see [Deploying](#deploying-on-vercel))
 
 Virtual makeup try-on usually answers "do I like how this looks?" Proof Beauty answers **"does this look actually do what I need it to?"**
 
