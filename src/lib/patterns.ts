@@ -10,7 +10,7 @@ import type { Role } from "./types";
  *  - `blush`      : pattern {name} + palettes[{color, texture: matte|satin|shimmer, colorIntensity}] ("2colors6" works).
  *  - There is no powder category, so shine control = a matte foundation (glowIntensity 0).
  *
- * Because concealer/foundation have no patterns, the 3 variants per role differ by `params` instead:
+ * Because concealer/foundation have no patterns, the 3 variants per role (blush has just 1) differ by `params` instead:
  *   underEye / coverage are multipliers of the effect's intensity; glow is absolute (0 = matte).
  * Roles that share a category (e.g. several foundation roles) are merged into one effect when the
  * request is built (see buildVtoEffects in src/server/youcam.ts).
@@ -49,11 +49,9 @@ export const PATTERN_CATALOG: Record<Role, PatternVariant[]> = {
     { category: "foundation", label: "Matte oil-control finish", params: { coverage: 0.5, glow: 0 } },
     { category: "foundation", label: "Full matte finish", params: { coverage: 0.65, glow: 0 } },
   ],
-  cheek_blush: [
-    { category: "blush", pattern: "2colors6", label: "Soft cheek flush" },
-    { category: "blush", pattern: "2colors6", label: "Soft cheek flush" },
-    { category: "blush", pattern: "2colors6", label: "Soft cheek flush" },
-  ],
+  // One variant on purpose: "2colors6" is the only blush pattern verified against the API, and no concern maps to
+  // this role yet, so the planner never picks it. Add variants here only after verifying their pattern names.
+  cheek_blush: [{ category: "blush", pattern: "2colors6", label: "Soft cheek flush" }],
 };
 
 export function getCatalog(): Record<Role, PatternVariant[]> {
@@ -64,8 +62,8 @@ export function getCatalog(): Record<Role, PatternVariant[]> {
     const merged = { ...PATTERN_CATALOG };
     for (const [role, v] of Object.entries(o) as [Role, Partial<PatternVariant> | Partial<PatternVariant>[]][]) {
       const list = Array.isArray(v) ? v : [v];
-      merged[role] = [0, 1, 2].map((i) => ({
-        ...PATTERN_CATALOG[role][i],
+      merged[role] = PATTERN_CATALOG[role].map((base, i) => ({
+        ...base,
         ...(list[i] ?? list[0]),
       })) as PatternVariant[];
     }

@@ -128,6 +128,10 @@ Other hosts: any VM or container with a persistent volume runs it as-is with no 
 
 Live deployment: https://proof-beauty.vercel.app. **The YouCam credit pool is small (a run costs about 54 credits, so only a handful of real runs fit).** When it is used up the app does not break: runs fall back to the built-in simulated engine and are labelled "Demo data · simulated" on the run and results screens, and live YouCam is retried automatically about 30 minutes after a top-up. The recorded video is the main evidence of a real YouCam run. Runs are also rate-limited per IP.
 
+## Submission text and license
+
+Hackathon write-up (YouCam usage, retail value, experience, novelty): [docs/submission.md](docs/submission.md). Released under the [MIT License](LICENSE).
+
 ## Privacy
 
 Explicit consent before any upload, short-TTL storage (`SESSION_TTL_MINUTES`, default 60), one-tap "Delete my photos", and the API key never reaches the browser. `.data/` holds sessions, cache and the ledger and is git-ignored. In the browser, photos are held in memory only while you use the page (so a server restart can't blank them) and are dropped on "Start over" / "Delete my photos"; a photo that's genuinely gone shows a "Photo not available" panel with a retry instead of a broken icon.

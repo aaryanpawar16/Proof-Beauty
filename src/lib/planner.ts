@@ -117,7 +117,8 @@ function buildEffects(
     roles.set("base_even", style === "full" ? meta.intensity - 10 : 38);
   }
   return [...roles.entries()].map(([role, intensity]) => {
-    const variant = catalog[role][(meta.variant + variantShift) % 3];
+    const variants = catalog[role];
+    const variant = variants[(meta.variant + variantShift) % variants.length];
     return {
       role,
       category: variant.category,
